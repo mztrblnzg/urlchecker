@@ -1,0 +1,96 @@
+   <!DOCTYPE html>
+   <html lang="ru">
+   <head>
+       <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <title>URL Checker</title>
+       <style>
+           body {
+               font-family: Arial, sans-serif;
+               max-width: 600px;
+               margin: 50px auto;
+               padding: 20px;
+           }
+           .container {
+               border: 1px solid #ddd;
+               padding: 30px;
+               border-radius: 8px;
+           }
+           input {
+               width: 100%;
+               padding: 10px;
+               font-size: 16px;
+               margin: 10px 0;
+           }
+           button {
+               width: 100%;
+               padding: 12px;
+               background: #007bff;
+               color: white;
+               border: none;
+               font-size: 16px;
+               cursor: pointer;
+               border-radius: 4px;
+           }
+           button:hover {
+               background: #0056b3;
+           }
+           .result {
+               margin-top: 20px;
+               padding: 15px;
+               border-radius: 4px;
+               display: none;
+           }
+           .ok {
+               background: #d4edda;
+               color: #155724;
+           }
+           .blocked {
+               background: #f8d7da;
+               color: #721c24;
+           }
+       </style>
+   </head>
+   <body>
+       <div class="container">
+           <h1>URL Checker</h1>
+           <input type="text" id="urlInput" placeholder="Введите URL для проверки">
+           <button onclick="checkURL()">Проверить</button>
+           <div id="result" class="result"></div>
+       </div>
+
+       <script>
+           async function checkURL() {
+               const url = document.getElementById('urlInput').value;
+               const resultDiv = document.getElementById('result');
+               
+               if (!url) {
+                   alert('Введите URL');
+                   return;
+               }
+
+               try {
+                   const response = await fetch('/check', {
+                       method: 'POST',
+                       headers: {
+                           'Content-Type': 'application/json',
+                       },
+                       body: JSON.stringify({ url: url })
+                   });
+
+                   const data = await response.json();
+                   
+                   resultDiv.style.display = 'block';
+                   resultDiv.className = 'result ' + data.status;
+                   resultDiv.textContent = data.status === 'ok' 
+                       ? '✓ URL разрешён' 
+                       : '✗ URL заблокирован';
+               } catch (error) {
+                   resultDiv.style.display = 'block';
+                   resultDiv.className = 'result blocked';
+                   resultDiv.textContent = 'Ошибка: ' + error.message;
+               }
+           }
+       </script>
+   </body>
+   </html>
