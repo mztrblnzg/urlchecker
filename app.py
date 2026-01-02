@@ -182,83 +182,7 @@ def check_virustotal(url: str) -> tuple[bool | None, str, int]:
         return None, f"Ошибка VirusTotal: {e}", 1
 
 
-def check_cookies(url: str) -> tuple[str, int]:
-    try:
-        response = requests.get(url, timeout=15)
-        cookies = response.cookies
-        headers = response.headers
 
-        if not cookies:
-            return "Куки не найдены", 0
-
-        detailed_report: list[str] = []
-        detailed_report.append(f"Найдено куки: {len(cookies)}")
-
-        security_violations = 0
-
-        for cookie in cookies:
-            cookie_report = [
-                f"Cookie имя: {cookie.name}",
-                f"  Значение: {cookie.value}",
-            ]
-
-            # Secure
-            if not cookie.secure:
-                security_violations += 1
-                cookie_report.append("  Secure: Нет (⚠️)")
-            else:
-                cookie_report.append("  Secure: Да")
-
-            # HttpOnly
-            httponly = cookie.has_nonstandard_attr("HttpOnly")
-            if not httponly:
-                security_violations += 1
-                cookie_report.append("  HttpOnly: Нет (⚠️)")
-            else:
-                cookie_report.append("  HttpOnly: Да")
-
-            # SameSite
-            samesite = cookie._rest.get("SameSite", "Не задано") if hasattr(cookie, "_rest") else "Не задано"
-            if samesite == "Не задано":
-                security_violations += 1
-                cookie_report.append("  SameSite: Не задано (⚠️)")
-            else:
-                cookie_report.append(f"  SameSite: {samesite}")
-
-            # Expires
-            expires = cookie.expires
-            if expires:
-                expire_time = datetime.utcfromtimestamp(expires)
-                cookie_report.append(f"  Истекает: {expire_time} (UTC)")
-            else:
-                security_violations += 1
-                cookie_report.append("  Истекает: Не задано (⚠️)")
-
-            detailed_report.append("\n".join(cookie_report))
-
-        # Security headers
-        csp = headers.get("Content-Security-Policy", "Отсутствует")
-        xfo = headers.get("X-Frame-Options", "Отсутствует")
-        hsts = headers.get("Strict-Transport-Security", "Отсутствует")
-
-        for v in (csp, xfo, hsts):
-            if v == "Отсутствует":
-                security_violations += 1
-
-        detailed_report.append(
-            "\n".join([
-                "Анализ заголовков безопасности:",
-                f"  Content-Security-Policy: {csp}",
-                f"  X-Frame-Options: {xfo}",
-                f"  Strict-Transport-Security: {hsts}",
-                f"Найдено нарушений безопасности: {security_violations}",
-            ])
-        )
-
-        return "\n\n".join(detailed_report), security_violations
-
-    except Exception as e:
-        return f"Ошибка при проверке cookies: {e}", 1
 
 
 def comprehensive_website_check(url: str) -> dict:
@@ -308,15 +232,7 @@ def comprehensive_website_check(url: str) -> dict:
         overall_status = "DANGEROUS"
         overall_issues.append(f"VT: {vt_issues}")
 
-    # 4) Cookies & headers
-    cookies_report, cookies_violations = check_cookies(url)
-    security_violations += cookies_violations
-    results.append({
-        "module": "cookies_headers",
-        "safe": None,
-        "details": cookies_report,
-        "violations": cookies_violations
-    })
+
 
     return {
         "url": url,
