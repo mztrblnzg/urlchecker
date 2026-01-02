@@ -30,9 +30,10 @@ SUSPICIOUS_WORDS = [
 
 URL_PATTERNS = re.compile(r"https?://|ftp://", re.IGNORECASE)
 
+
 app = FastAPI()
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def root():
     return {"status": "ok"}
 
