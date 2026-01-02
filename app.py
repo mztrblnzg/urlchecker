@@ -30,7 +30,11 @@ SUSPICIOUS_WORDS = [
 
 URL_PATTERNS = re.compile(r"https?://|ftp://", re.IGNORECASE)
 
-app = FastAPI(title="Link Safety Checker", version="1.0.0")
+app = FastAPI()
+
+@app.get("/")
+def root():
+    return {"status": "ok"}
 
 
 def is_domain_allowed(domain: str) -> bool:
