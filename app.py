@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Literal
 
+
+print("LOADED app.py VERSION=2026-01-02")
+
 app = FastAPI()
 
 WHITELIST = {
@@ -13,7 +16,7 @@ class URLCheckRequest(BaseModel):
 
 @app.get("/")
 def root():
-    return {"status": "ok"}
+    return {"status": "ok", "version": "2026-01-02"}
 
 @app.get("/health")
 def health():
