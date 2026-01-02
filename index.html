@@ -78,7 +78,52 @@
         else setResult(`Статус: ${status}`, "muted");
 
         detailsWrap.style.display = "block";
-        reportEl.textContent = JSON.stringify(report, null, 2);
+
+// Собираем только существующие проблемы
+const problems = [];
+
+// 1) Общие issues (если backend их заполнил)
+if (Array.isArray(report?.issues)) {
+  for (const it of report.issues) {
+    if (typeof it === "string" && it.trim()) problems.push(it.trim());
+  }
+}
+
+// 2) Фолбэк: пройдём по модулям и возьмём только небезопасные/с нарушениями
+if (Array.isArray(report?.modules)) {
+  for (const m of report.modules) {
+    const moduleName = m?.module || "module";
+    const details = (m?.details || "").trim();
+
+    // Считаем проблемой:
+    // - safe === false
+    // - или violations > 0
+    // - или (для VT) raw_violations > 0
+    const hasProblem =
+      m?.safe === false ||
+      (typeof m?.violations === "number" && m.violations > 0) ||
+      (typeof m?.raw_violations === "number" && m.raw_violations > 0);
+
+    if (!hasProblem) continue;
+
+    // Не считаем проблемой отсутствие VT ключа (это "нет данных", а не "плохо")
+    if (moduleName === "virustotal" && details.includes("VT_API_KEY")) continue;
+
+    // Не выводим "OK"
+    if (!details || details === "OK") continue;
+
+    problems.push(`${moduleName}: ${details}`);
+  }
+}
+
+// Удалим дубли (если issues и modules дали одно и то же)
+const uniq = [...new Set(problems)];
+
+if (uniq.length === 0) {
+  reportEl.textContent = "Проблем не обнаружено.";
+} else {
+  reportEl.textContent = uniq.map((x) => `- ${x}`).join("\n");
+}
 
       } catch (e) {
         setResult("Сеть недоступна или сервер не отвечает.", "blocked");
