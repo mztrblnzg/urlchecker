@@ -1,31 +1,24 @@
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
-from fastapi import Response
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Response
+from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 from typing import Literal
-from fastapi.staticfiles import StaticFiles
 import os
 
 print("LOADED app.py VERSION=2026-01-02")
 
 app = FastAPI()
 
-@app.get("/", response_class=HTMLResponse)
-    def root():
-        with open("index.html") as f:
-            return HTMLResponse(content=f.read(), status_code=20
-                                
 WHITELIST = {
-       "https://urlchecker-n49c.onrender.com",
-   }
+    "https://urlchecker-n49c.onrender.com",
+}
 
 class URLCheckRequest(BaseModel):
     url: str
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def root():
-    return FileResponse("index.html")
+    with open("index.html") as f:
+        return HTMLResponse(content=f.read(), status_code=200)
 
 @app.get("/health")
 def health():
